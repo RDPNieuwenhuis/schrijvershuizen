@@ -1,14 +1,435 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
+    <title>Map of English Writers’ Homes</title>
     <meta charset="utf-8">
-    <style>
-     body {padding: 0; margin: 20px auto; width: 60%;}
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.3/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css" />
+    <link rel="stylesheet" href="./leaflet-search.css" />
+    <script src="https://unpkg.com/leaflet@1.3.3/dist/leaflet.js"></script>
+    <script src="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js"></script>
+    <script src="./leaflet-search.src.js"></script>
   </head>
   <body>
-    <div style="position: relative; padding-bottom: 90%; height: 0; overflow: hidden; max-width: 100%; margin-bottom: 20px">
-      <iframe src="https://rdpnieuwenhuis.github.io/writershomes/" style="border:0; position: absolute; top: 0; left: 0; width: 100%; height: 100%" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe>
-    </div>
+    <style>
+     html, body, #map {
+       margin: 0;
+       padding: 0;
+       width: 100%;
+       height: 100%;
+       font-family: "Georgia", serif;
+       font-size: 14px;
+       line-height: 18px;
+     }
+     .leaflet-popup-content h1 {
+       padding: 0;
+       margin: 0;
+       font-size: 15px;
+       line-height: 19px;
+       font-weight: 600;
+     }
+     .leaflet-popup-content .location {
+       margin-bottom: 5px;
+       color: #777;
+     }
+     .leaflet-popup-content p {
+       margin: 0;
+       padding: 0;
+     }
+     .info {
+       padding: 6px 8px;
+       font-size: 15px;
+       line-height: 19px;
+       font-weight: 600;
+       background: white;
+       background: rgba(255,255,255,0.8);
+       box-shadow: 0 0 15px rgba(0,0,0,0.2);
+       border-radius: 5px;
+     }
+    </style>
+    <script>
+     var locations = [
+[
+         "Hans Warren, (1921–2001)",
+         "Zeedijk, Borssele",
+         51.4144444,
+         3.762818,
+         "Hans Warren werd geboren in een huis aan de Borsselse Zeedijk. Het huis werd na de watersnoodramp van 1953 gesloopt.",
+         "Zeedijk 323, Borssele"
+       ],
+       [
+         "Pierre Kemp, (1886–1967)",
+         "Mariastraat, Maastricht",
+         50.850488,
+         5.6910165,
+         "Geboortehuis van Pierre Kemp.",
+         "Mariastraat 15 Maastricht"
+       ],
+       [
+         "Frans Erens, (1857–1935)",
+         "Raadhuisplein, Landgraaf",
+         50.9049912,
+         6.0219701,
+         "Frans Erens werd in 1857 geboren in Huize De Kamp in Schaesberg. Op deze locatie staat nu het gemeentehuis van Landgraaf.",
+         "Raadhuisplein 1, 6371 LA Landgraaf"
+       ],
+       [
+         "Jan Hanlo, (1912–1969)",
+         "Het Geerlingshof, Valkenburg",
+         50.8718551,
+         5.816558,
+         "In juni 1969 botste Jan Hanlo met zijn motorfiets op een tractor. Twee dagen na het ongeluk overleed hij. Tot zijn dood woonde hij in het poortwachtershuisje van Het Geerlingshof, een Valkenburgse villa.",
+         "Het Geerlingshof, Valkenburg"
+       ],
+       [
+         "Willem Wilmink, (1936–2003)",
+         "Javastraat, Enschede",
+         52.2132593,
+         6.9003582,
+         "Willem Wilmink werd hier in 1936 geboren. In 2003 stierf hij in exact dezelfde straat in Enschede, op steenworp afstand van zijn geboortehuis.",
+         "Javastraat 167, Enschede"
+       ],
+       [
+         "Anton Coolen, (1897–1961)",
+         "Sint-Joseph Ziekenhuis, Eindhoven",
+         51.4303796,
+         5.41836,
+         "In oktober 1961 viel Anton Coolen om onduidelijke redenen uit een rijdende trein, om een maand later te overlijden in het Sint-Joseph Ziekenhuis in Eindhoven (nu het Máxima Medisch Centrum).",
+         "Sint-Joseph Ziekenhuis in Eindhoven"
+       ],
+       [
+         "A. Staring, (1767–1840)",
+         "De Wildenborch, Vorden",
+         52.121686,
+         6.3836693,
+         "A. Staring stierf in 1840 in zijn kasteel De Wildenborch. In het nabije Almen werd in juni 2018 Museum Staal geopend, een museum ter ere van de romantisch dichter.",
+         "De Wildenborch, Vorden"
+       ],
+       [
+         "Baruch Spinoza, (1632–1677)",
+         "Spinozahuis, Rijnsburg",
+         52.1914504,
+         4.4349591,
+         "Het geboortehuis van Baruch Spinoza, nabij het Waterlooplein, bestaat niet meer. Wel overgeleverd is het huis in Rijnsburg, waar de filosoof in 1661 kwam te wonen en waar nu het Spinoza Museum zit.",
+         "Spinozahuis, Rijnsburg"
+       ],
+       [
+         "A.M. de Jong, (1888–1943)",
+         "A.M. de Jong-museum, Nieuw-Vossemeer",
+         51.5868531,
+         4.2156172,
+         "A.M. de Jong werd geboren het Noord-Brabantse dorp Nieuw-Vossemeer, waar nu het A.M. de Jong-museum gevestigd zit.",
+         "A.M. de Jong-museum, Nieuw-Vossemeer"
+       ],
+       [
+         "Belle van Zuylen, (1740-1805)",
+         "Slot Zuylen, Oud-Zuylen",
+         52.1270908,
+         5.0708884,
+         "Belle van Zuylen werd in 1740 geboren op Slot Zuylen. Tegenwoordig is het slot een museum.",
+         "Slot Zuylen, Oud-Zuylen"
+       ],
+       [
+         "Dick Bruna, (1927–2017)",
+         "Nijntje Museum, Utrecht",
+         52.0839404,
+         6.3836693,
+         "Dick Bruna werd geboren in Utrecht, waar nu het Nijntje Museum zit.",
+         "Nijntje Museum, Utrecht"
+       ],
+       [
+         "Dirkje Kuik, (1929–2008)",
+         "Museum Dirkje Kuik, Utrecht",
+         52.0893063,
+         5.1235572,
+         "Dirkje Kuik werd in 1929 als William Diederich Kuik geboren in Utrecht. In 2008 werd in haar voormalig woonhuis een museum geopend. Dat museum sloot in 2012.",
+         "Museum Dirkje Kuik, Utrecht"
+       ],
+       [
+         "Willem Frederik Hermans, (1921–1995)",
+         "De Lindenhof, Haren",
+         53.1708142,
+         6.603561,
+         "Woonplaats van Willem Frederik Hermans van 1967 tot 1973. Na een conflict met zijn werkgever, de Rijksuniversiteit Groningen, vertrok Hermans naar Parijs.",
+         "Julianalaan 11, De Lindenhof, Haren"
+       ],
+         [
+         "Herman Gorter, (1864-1927)",
+         "Nieuwe 's Gravelandseweg, Bussum",
+         52.2679846,
+         5.1483502,
+         "Herman Gorter verhuisde in 1893 naar Bussum, naar een huis dat Berlage voor hem had gebouwd.",
+         "Nieuwe 's Gravelandseweg 66, Bussum"
+       ],
+        [
+         "J.J. Slauerhoff, (1898–1936)",
+         "Voorstreek, Leeuwarden",
+         53.203156,
+         5.7978178,
+         "Jan Jacob Slauerhoff, zoon van een stoffeerder, werd hier geboren in 1898.",
+         "Voorstreek 33, Leeuwarden"
+       ],
+        [
+         "Gerard Reve, (1923–2006)",
+         "Doarpswei, Greonterp",
+         53.0153718,
+         5.5169187,
+         "Gerard Reve woonde van 1964 tot en met 1971 in Huize het Gras, Greonterp. Hij woonde er samen met Willem Bruno van Albada en Henk van Manen, zijn partners, die in Reves werk terugkwamen als Teigetje en Woelrat.",
+         "Doarpswei 16, Greonterp"
+       ],
+       [
+         "Piet Paaltjens, (1835-1894)",
+         "Foudgum",
+         53.3456012,
+         5.9394886,
+         "Piet Paaltjens stond in Foudgum, van 1859 tot en met 1863, voor het eerst als predikant voor een gemeente.",
+         "Piet Paaltjenspaad 3, 9154 BD Foudgum"
+       ],
+        [
+         "Simon Vestdijk, (1898-1971)",
+         "Lanen, Harlingen",
+         53.1736549,
+         5.4173666,
+         "Drie jaar na zijn geboorte, in een huis op de Voorstraat te Harlingen, verhuist de familie van Simon Vestdijk naar een huis op Lanen.",
+         "Lanen 82a te Harlingen"
+       ],
+       [
+         "J.C. Bloem, (1887-1966)",
+         "Kalenberg",
+         52.7992051,
+         5.9011935,
+         "In 1959 verhuisde J.C. Bloem naar Kalenberg, Overijssel, waar de woonboot lag van zijn ex-vrouw Clara Eggink. Bloem zelf woonde tot zijn dood in een nabijgelegen boerderij.",
+         "Kalenberg"
+       ],
+        [
+         "Gerrit Achterberg, (1905-1962)",
+         "Boomstraat, Utrecht",
+         52.083178,
+         5.1367524,
+         "Gerrit Achterberg schoot op 15 december 1937, in dit huis op de Boomstraat in Utrecht, zijn hospita Roel van Es dood nadat Achterberg had geprobeerd haar zestienjarige dochter Bep te verkrachten.",
+         "Boomstraat"
+       ],
+        [
+         "Nescio, (1882-1961)",
+         "Transvaalkade, Amsterdam",
+         52.3543309,
+         4.9233128,
+         "Nescio, pseudoniem van J.H.F. Grönloh, woonde van 1906 tot 1907 met zijn vrouw in dit huis op de Transvaalkade.",
+         "Transvaalkade 29, Amsterdam"
+       ],
+         [
+         "Multatuli, (1820-1887)",
+         "Korsjespoortsteeg, Amsterdam",
+         52.3774702,
+         4.8889206,
+         "Multatuli (Eduard Douwes Dekker) werd op 2 maart 1820 geboren op de bovenste verdieping van dit huis, nu open voor het publiek als het Multatuli Museum.",
+         "Korsjespoortsteeg 20, Amsterdam"
+       ],
+        [
+         "A. den Doolaard, (1901-1994)",
+         "Miggelenbergweg 51, Hoenderloo",
+         52.1277439,
+         5.8989186,
+         "Begin jaren vijftig vestigde A. den Doolaard (Cornelis Johannes George Spoelstra) zich in het Gelderse Hoenderloo, waar hij tot het einde van zijn leven bleef wonen en werkte als correspondent voor <em>De Gelderlander</em>.",
+         "Korsjespoortsteeg 20, Amsterdam"
+       ],
+       [
+         "Boudewijn Büch, (1948-2002)",
+         "Keizersgracht, Amsterdam",
+         52.375598,
+         4.8845373,
+         "Boudewijn Büch werd op 23 november 2002 dood aangetroffen in de slaapkamer van zijn herenhuis aan de Amsterdamse Keizersgracht.",
+         "Keizersgracht 149, Amsterdam"
+       ],
+       [
+         "Frederik van Eeden, (1860-1932)",
+         "Walden, Bussum",
+         52.2558601,
+         5.139376,
+         "In 1898 kocht Frederik van Eeden Landgoed Cruysbergen op met als doel er een socialistische huttenkolonie te vestigen. Hoewel ‘Walden’ in 1907 failliet ging, bleef Van Eeden tot zijn dood op het Bussumse landgoed wonen. Op de plek waar Villa Cruysbergen stond staat nu een horeca groothandel.",
+         "Landgoed Cruysbergen, Bussum"
+       ],
+       [
+         "Gerrit Komrij, (1944-2012)",
+         "Iepenstraat, Winterswijk",
+         51.9741959,
+         6.7259089,
+         "Op 30 maart 1944 werd Gerrit Komrij geboren in dit huis in Winterswijk, in een kippenhok, tijdens een luchtaanval.",
+         "Iepenstraat 23, Winterswijk"
+       ],
+       [
+         "Jacob van Lennep, (1802-1868)",
+         "Pension Schoonoord, Oosterbeek",
+         51.9876605,
+         5.8358328,
+         "Op 16 juni 1868 trok Jacob van Lennep met zijn vrouw naar pension Schoonoord in Oosterbeek, voor een kort verblijf. Tijdens zijn verblijf werd Van Lennep ziek. Op 25 augustus overleed hij en werd al twee dagen begraven op het oude kerkhof van Oosterbeek.",
+         "Pension Schoonoord, Oosterbeek"
+       ],
+       [
+         "Godfried Bomans, (1913-1971)",
+         "Bierkade, Den Haag",
+         52.074214,
+         4.3150806,
+         "Godfried Bomans werd op 2 maart 1913 geboren in een nu gesloopt huis aan de Bierkade in Den Haag. Op 2 maart 2013 werd er een gedenkplaat aangebracht op de Bierkade, ter herinnering aan de 100ste geboortedag van de schrijver.",
+         "Bierkade 2A, Den Haag"
+       ],
+       [
+         "Betje Wolff, (1738-1804)",
+         "Middenweg, Middenbeemster",
+         52.5472606,
+         4.9104304,
+         "Betje Wolff woonde van 1759 tot het overlijden van haar man dominee A. Wolff in 1777, in deze voormalige pastorie in Middenbeemster, nu Museum Betje Wolff.",
+         "Middenweg 178, Middenbeemster"
+       ],
+       [
+         "Hella Haasse, (1918-2011)",
+         "Stadhouderskade, Amsterdam",
+         52.3618513,
+         4.8776449,
+         "Hella Haasse woonde tot haar dood in 2011 in het door Rem Koolhaas ontworpen Byzantium, aan het begin van het Vondelpark.",
+         "Byzantium, Amsterdam"
+       ],
+       [
+         "Theo Thijssen, (1879-1943)",
+         "Eerste Leliedwarsstraat, Amsterdam",
+         52.3755332,
+         4.8805219,
+         "In het geboortehuis van Theo Thijssen werd in 1995. het Theo Thijssen Museum geopend.",
+         "Eerste Leliedwarsstraat 16, Amsterdam"
+       ],
+       [
+         "Harry Mulisch, (1927-2010)",
+         "Leidsekade, Amsterdam",
+         52.3629401,
+         4.8798845,
+         "Harry Mulisch woonde van 1958 tot 2010 - het jaar waarin hij stierf - in dit appartement aan de Leidsekade. Het huis is op verzoek toegankelijk.",
+         "Leidsekade 103, Amsterdam"
+       ],
+       [
+         "Louis Couperus, (1863-1923)",
+         "Javastraat, Den Haag",
+         52.0886169,
+         4.3055576,
+         "Couperus woonde op verschillende locaties in zijn geboortestad Den Haag. Hij woonde echter nooit op de Javastraat, waar tegenwoordig het Couperus Museum is gevestigd.",
+         "Javastraat 17, Den Haag"
+       ],
+       [
+         "Annie M.G. Schmidt, (1911-1995)",
+         "Kapelle, Zeeland",
+         51.4864079,
+         3.9555139,
+         "Annie M. G. Schmidt werd in 1911 geboren in een voormalige pastorie aan het Kerkplein in Kapelle. In 2009 werd er een borstbeeld van Schmidt geplaatst, dat kort daarop werd gestolen. In 2010 werd het vervangen door een replica.",
+         "Kerkplein 4420, Kapelle, Zeeland"
+       ],
+       [
+         "Anne Frank, (1929-1945)",
+         "Prinsengracht, Amsterdam",
+         52.3752871,
+         4.8819492,
+         "Anne Frank schreef ik dit huis, op steenworp afstand van de Westerkerk, haar beroemde <em>Het Achterhuis</em>. In het pand zit nu het veelbezochte museum het Anne Frank Huis.",
+         "Prinsengracht 263-267, Amsterdam"
+       ],
+       [
+         "Jan Wolkers, (1925-2007)",
+         "Deutzstraat, Oegstgeest",
+         52.1787222,
+         4.4627733,
+         "Geboortehuis van Jan Wolkers.",
+         "Deutzstraat 7 te Oegstgeest"
+       ],
+       [
+         "Lucebert, (1924-1994)",
+         "Boendermakerhof, Bergen",
+         52.6651859,
+         4.7071307,
+         "Voormalig atelier van Lucebert. De locatie is vanaf 2015 als schrijvers- en beeldhouwersresidentie beschikbaar gesteld door de Stichting Lucebert.",
+         "Boendermakerhof 10, Bergen"
+       ],
+       [
+         "Willem Bilderdijk, (1756-1831)",
+         "Rapenburg, Leiden",
+         52.1586611,
+         4.4826743,
+         "Willem Bilderdijk woonde van 1819 tot 1823 op de Rapenburg. Een plaquette herinnert aan zijn tijd daar.",
+         "Rapenburg 37, Leiden"
+       ],
+       [
+         "Joost van den Vondel, (1587-1679)",
+         "Nieuwe kerk, Amsterdam",
+         52.3739574,
+         4.8895209,
+         "Joost van den Vondel werd in 1679, op 91-jarige leeftijd, begraven in de Nieuwe Kerk te Amsterdam.",
+         "Boendermakerhof 10, Bergen"
+       ],
+       [
+         "Constantijn Huygens, (1596-1687)",
+         "Hofwijck, Voorburg",
+         52.0648848,
+         4.3604102,
+         "Hofwijck werd in 1642 gebouwd in opdracht van Constantijn Huygens, die het gebruikte als buitenhuis.",
+         "Hofwijck, Voorburg "
+       ],
+       [
+         "P.C. Hooft, (1581-1647)",
+         "Muiderslot, Muiden",
+         52.3343272,
+         5.0692339,
+         "In 1609 werd P. C. Hooft benoemd tot baljuw van Gooiland, waarna hij zich vestigde op het Muiderslot.",
+         "Muiderslot, Muiden"
+       ],
+       ];
+    </script>
+    <div id="map"></div>
+
+    <script>
+     if (L.Browser.mobile) {
+       var map = L.map("map", {keyboard: false});
+     } else {
+       var map = L.map("map", {fullscreenControl: {pseudoFullscreen: false}});
+     };
+
+     map.setView([52.6360564, -1.2013116], 7);
+
+     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+       attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+       maxZoom: 18
+     }).addTo(map);
+
+     var markersLayer = new L.LayerGroup();
+     map.addLayer(markersLayer);
+
+     var searchControl = new L.Control.Search({
+       layer: markersLayer,
+       initial: false,
+       zoom: 11,
+       marker: false,
+       textPlaceholder: "Search author...",
+       textErr: "Author not found",
+       delayType: 200
+     }).addTo(map);
+
+     searchControl.on("search:locationfound", function(e) {
+       e.layer.openPopup();
+     });
+
+     for (var i = 0; i < locations.length; i++) {
+       var loc = locations[i];
+       var marker = L.marker(new L.LatLng(loc[2], loc[3]), {title: loc[0]});
+       marker.bindPopup("<h1>" + loc[0] + "</h1><p class='location'>" + loc[1] + "</p><p>" + loc[4] + "</p>");
+       markersLayer.addLayer(marker);
+     }
+
+     var info = L.control({position: "topright"});
+     info.onAdd = function (map) {
+       this._div = L.DomUtil.create("div", "info");
+       this._div.innerHTML = "UK Writers’ Houses";
+       return this._div;
+     };
+
+     info.addTo(map);
+    </script>
+
   </body>
 </html>
+
